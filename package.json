@@ -24,6 +24,7 @@
     "load-tsconfig": "^0.2.5",
     "madge": "^6.0.0",
     "nx-cloud": "16.0.5",
+    "patch-package": "^8.0.0",
     "prettier": "3.5.3",
     "prettier-plugin-svelte": "^3.4.0",
     "proper-lockfile": "^4.1.2",
@@ -93,7 +94,7 @@
     "mode:cloud": "yarn env:selfhost:disable && yarn env:multi:enable && yarn env:account:disable",
     "mode:account": "yarn mode:cloud && yarn env:account:enable",
     "security:audit": "node scripts/audit.js",
-    "postinstall": "husky install",
+    "postinstall": "patch-package",
     "submodules:load": "git submodule init && git submodule update && yarn",
     "submodules:unload": "git submodule deinit --all && yarn",
     "add-app-migration": "node scripts/add-app-migration.js --title"
@@ -125,7 +126,7 @@
     "esm": "npm:esm-wallaby@3.2.32"
   },
   "engines": {
-    "node": ">=22.0.0 <23.0.0"
+    "node": ">=22.0.0"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
