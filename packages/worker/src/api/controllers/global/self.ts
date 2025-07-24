@@ -22,6 +22,7 @@ import {
   UpdateSelfResponse,
   User,
   UserCtx,
+  Feature,
 } from "@budibase/types"
 
 const { newid } = utils
@@ -113,8 +114,48 @@ export async function getSelf(ctx: UserCtx<void, GetGlobalSelfResponse>) {
   const user = await userSdk.db.getUser(userId)
   const enrichedUser = await groups.enrichUserRolesFromGroups(user)
 
-  // add the attributes that are session based to the current user
+  // UNLIMITED PRO - Force enterprise license with all features
   const sessionAttributes = getUserSessionAttributes(ctx)
+
+  // Override with unlimited enterprise license
+  const unlimitedLicense = {
+    features: [
+      Feature.USER_GROUPS, Feature.APP_BACKUPS, Feature.ENVIRONMENT_VARIABLES, Feature.AUDIT_LOGS,
+      Feature.ENFORCEABLE_SSO, Feature.BRANDING, Feature.SCIM, Feature.SYNC_AUTOMATIONS,
+      Feature.TRIGGER_AUTOMATION_RUN, Feature.APP_BUILDERS, Feature.OFFLINE, Feature.EXPANDED_PUBLIC_API,
+      Feature.CUSTOM_APP_SCRIPTS, Feature.PDF, Feature.BUDIBASE_AI, Feature.AI_CUSTOM_CONFIGS, Feature.PWA
+    ],
+    quotas: {
+      usage: {
+        monthly: {
+          queries: { name: "Queries", value: -1, triggers: [] },
+          automations: { name: "Automations", value: -1, triggers: [] },
+          budibaseAICredits: { name: "Budibase AI Credits", value: -1, triggers: [] },
+          actions: { name: "Actions", value: -1, triggers: [] }
+        },
+        static: {
+          rows: { name: "Rows", value: -1, triggers: [] },
+          apps: { name: "Apps", value: -1, triggers: [] },
+          users: { name: "Users", value: -1, triggers: [] },
+          creators: { name: "Creators", value: -1, triggers: [] },
+          userGroups: { name: "User Groups", value: -1, triggers: [] },
+          plugins: { name: "Plugins", value: -1, triggers: [] },
+          aiCustomConfigs: { name: "AI Custom Configs", value: -1, triggers: [] }
+        }
+      },
+      constant: {
+        automationLogRetentionDays: { name: "Automation Logs", value: -1, triggers: [] },
+        appBackupRetentionDays: { name: "Backups", value: -1, triggers: [] }
+      }
+    },
+    plan: {
+      type: "enterprise",
+      model: "unlimited"
+    }
+  }
+
+  // Force unlimited license into session attributes
+  sessionAttributes.license = unlimitedLicense
 
   // add the feature flags for this tenant
   const flags = await features.flags.fetch()
@@ -125,13 +166,6 @@ export async function getSelf(ctx: UserCtx<void, GetGlobalSelfResponse>) {
         model: llmConfig.model,
       }
     : undefined
-
-  if (flags?.WORKSPACE_APPS) {
-    // TODO: once the flag is clean, we should rename the original object instead
-    sessionAttributes.license.quotas[QuotaType.USAGE][QuotaUsageType.STATIC][
-      StaticQuotaName.APPS
-    ].name = "Workspaces"
-  }
 
   ctx.body = {
     ...enrichedUser,

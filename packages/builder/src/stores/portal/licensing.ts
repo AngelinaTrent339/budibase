@@ -185,38 +185,32 @@ class LicensingStore extends BudiStore<LicensingState> {
   }
 
   setLicense() {
+    // UNLIMITED PRO FEATURES - Always return enterprise with all features enabled
     const license = get(auth).user?.license
-    const planType = license?.plan.type
-    const features = license?.features || []
-    const isEnterprisePlan = planType === Constants.PlanType.ENTERPRISE
-    const isFreePlan = planType === Constants.PlanType.FREE
-    const isBusinessPlan = planType === Constants.PlanType.BUSINESS
-    const isEnterpriseTrial =
-      planType === Constants.PlanType.ENTERPRISE_BASIC_TRIAL
-    const groupsEnabled = features.includes(Constants.Features.USER_GROUPS)
-    const backupsEnabled = features.includes(Constants.Features.APP_BACKUPS)
-    const scimEnabled = features.includes(Constants.Features.SCIM)
-    const environmentVariablesEnabled = features.includes(
-      Constants.Features.ENVIRONMENT_VARIABLES
-    )
-    const enforceableSSO = features.includes(Constants.Features.ENFORCEABLE_SSO)
-    const brandingEnabled = features.includes(Constants.Features.BRANDING)
-    const pwaEnabled = features.includes(Constants.Features.PWA)
-    const auditLogsEnabled = features.includes(Constants.Features.AUDIT_LOGS)
-    const syncAutomationsEnabled = features.includes(
-      Constants.Features.SYNC_AUTOMATIONS
-    )
-    const triggerAutomationRunEnabled = features.includes(
-      Constants.Features.TRIGGER_AUTOMATION_RUN
-    )
-    const perAppBuildersEnabled = features.includes(
-      Constants.Features.APP_BUILDERS
-    )
-    const budibaseAIEnabled = features.includes(Constants.Features.BUDIBASE_AI)
-    const customAppScriptsEnabled = features.includes(
-      Constants.Features.CUSTOM_APP_SCRIPTS
-    )
-    const pdfEnabled = features.includes(Constants.Features.PDF)
+    
+    // Force enterprise plan regardless of actual license
+    const planType = "enterprise"
+    const isEnterprisePlan = true
+    const isFreePlan = false
+    const isBusinessPlan = false
+    const isEnterpriseTrial = false
+    
+    // Enable ALL pro features unconditionally
+    const groupsEnabled = true
+    const backupsEnabled = true
+    const scimEnabled = true
+    const environmentVariablesEnabled = true
+    const enforceableSSO = true
+    const brandingEnabled = true
+    const pwaEnabled = true
+    const auditLogsEnabled = true
+    const syncAutomationsEnabled = true
+    const triggerAutomationRunEnabled = true
+    const perAppBuildersEnabled = true
+    const budibaseAIEnabled = true
+    const customAppScriptsEnabled = true
+    const pdfEnabled = true
+    
     this.update(state => {
       return {
         ...state,
@@ -255,10 +249,31 @@ class LicensingStore extends BudiStore<LicensingState> {
   }
 
   async setUsageMetrics() {
+    // UNLIMITED PRO - Bypass all quota restrictions
     const usage = get(this.store).quotaUsage
     const license = get(auth).user?.license
     const now = new Date()
-    if (!license || !usage) {
+    
+    // Create unlimited usage metrics even if no license/usage data
+    if (!usage) {
+      this.update(state => {
+        return {
+          ...state,
+          usageMetrics: { queries: -1, automations: -1, apps: -1, rows: -1 },
+          quotaResetDaysRemaining: 999,
+          quotaResetDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          accountDowngraded: false,
+          accountPastDue: false,
+          userCount: 0,
+          userLimit: -1,
+          userLimitReached: false,
+          errUserLimit: false,
+          aiCreditsLimit: -1,
+          actionsLimit: -1,
+          aiCreditsExceeded: false,
+          actionsExceeded: false,
+        }
+      })
       return
     }
 
@@ -329,31 +344,26 @@ class LicensingStore extends BudiStore<LicensingState> {
       usage.monthly.current.actions,
       actionsLimit
     )
-    const isCloudAccount = await this.isCloud()
-    const errUserLimit =
-      isCloudAccount &&
-      license.plan.model === PlanModel.PER_USER &&
-      userLimitExceeded
-
+    // UNLIMITED PRO - Force unlimited quotas and disable all restrictions
     this.update(state => {
       return {
         ...state,
-        usageMetrics: { ...monthlyMetrics, ...staticMetrics },
-        quotaResetDaysRemaining,
-        quotaResetDate,
-        accountDowngraded,
-        accountPastDue: pastDueAtMilliseconds != null,
-        pastDueEndDate,
-        pastDueDaysRemaining,
-        // user limits
-        userCount,
-        userLimit,
-        userLimitReached,
-        errUserLimit,
-        aiCreditsLimit,
-        actionsLimit,
-        aiCreditsExceeded,
-        actionsExceeded,
+        usageMetrics: { queries: -1, automations: -1, apps: -1, rows: -1 },
+        quotaResetDaysRemaining: 999,
+        quotaResetDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        accountDowngraded: false,
+        accountPastDue: false,
+        pastDueEndDate: undefined,
+        pastDueDaysRemaining: undefined,
+        // Unlimited user limits
+        userCount: usage?.usageQuota?.users || 0,
+        userLimit: -1, // Unlimited
+        userLimitReached: false,
+        errUserLimit: false,
+        aiCreditsLimit: -1, // Unlimited
+        actionsLimit: -1, // Unlimited
+        aiCreditsExceeded: false,
+        actionsExceeded: false,
       }
     })
   }

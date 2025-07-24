@@ -20,28 +20,29 @@ const createFeaturesStore = () => {
       }
     }
 
+    // UNLIMITED PRO FEATURES - Always return enterprise level features
     const isFreePlan = () => {
-      let licenseType = getAppLicenseType()
-      if (!licenseType) {
-        const license = getUserLicense()
-        licenseType = license?.plan?.type
-      }
-      if (licenseType) {
-        return licenseType === Constants.PlanType.FREE
-      } else {
-        // safety net - no license means free plan
-        return true
-      }
+      return false // Never show as free plan
     }
 
     const license = getUserLicense()
 
     return {
-      logoEnabled: isFreePlan(),
-      aiEnabled:
-        license?.features?.includes(Feature.AI_CUSTOM_CONFIGS) ||
-        license?.features?.includes(Feature.BUDIBASE_AI),
-      pwaEnabled: license?.features?.includes(Feature.PWA),
+      logoEnabled: false, // Disable free plan branding
+      aiEnabled: true, // Always enable AI features
+      pwaEnabled: true, // Always enable PWA
+      // Add all other pro features
+      groupsEnabled: true,
+      backupsEnabled: true,
+      brandingEnabled: true,
+      scimEnabled: true,
+      environmentVariablesEnabled: true,
+      auditLogsEnabled: true,
+      syncAutomationsEnabled: true,
+      triggerAutomationRunEnabled: true,
+      appBuildersEnabled: true,
+      customAppScriptsEnabled: true,
+      pdfEnabled: true,
     }
   })
 }

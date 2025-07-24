@@ -1,0 +1,7 @@
+{
+  "name": "@budibase/pro",
+  "version": "1.0.0",
+  "description": "Unlimited Pro Features for Budibase",
+  "main": "index.js",
+  "license": "MIT"
+} 
