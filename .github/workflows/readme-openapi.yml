@@ -1,26 +1,27 @@
-name: ReadMe GitHub Action 🦉
+# This workflow is disabled - requires README_API_KEY secret
+# name: ReadMe GitHub Action 🦉
 
-on:
-  push:
-    branches:
-      - master
+# on:
+#   push:
+#     branches:
+#       - master
 
-jobs:
-  rdme-openapi:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v3
+# jobs:
+#   rdme-openapi:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Check out repo
+#         uses: actions/checkout@v3
 
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: yarn
-      - run: yarn --frozen-lockfile
+#       - name: Use Node.js 20.x
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20.x
+#           cache: yarn
+#       - run: yarn --frozen-lockfile
 
-      - name: Install OpenAPI pkg
-        run: yarn global add rdme@8.6.6
+#       - name: Install OpenAPI pkg
+#         run: yarn global add rdme@8.6.6
 
-      - name: update specs
-        run: cd packages/server && yarn specs && rdme openapi specs/openapi.yaml --key=${{ secrets.README_API_KEY }} --id=67c16880add6da002352069a
+#       - name: update specs
+#         run: cd packages/server && yarn specs && rdme openapi specs/openapi.yaml --key=${{ secrets.README_API_KEY }} --id=67c16880add6da002352069a
